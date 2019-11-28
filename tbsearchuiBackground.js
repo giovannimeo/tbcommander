@@ -8,38 +8,64 @@ console.log("Init background script");
 // Routine to handle a command coming from the content script invoked in the popup
 function handleCommand(text) {
     console.log(`Handle command: ${text}`);
-    var commandName = text.split(" ", 1)[0];
+    var commandName = text.split(":", 1)[0];
     var queryCmd = text.slice(commandName.length + 1, text.length);
-    // var urlData = commandDb[commandName];
-    // if (urlData === undefined) {
-    //     var candidates = [];
-    //     for (var commandKey in commandDb) {
-    //         if (commandKey.lastIndexOf(commandName, 0) === 0) {
-    //             candidates.push(commandKey);
-    //         }
-    //     }
-    //     if (candidates.length === 1) {
-    //         console.log("Found unambigous closest candidate: " + candidates[0]);
-    //         urlData = commandDb[candidates[0]];
-    //     }
-    // }
-    // if (urlData === undefined) {
-    //     if (text.indexOf(':') !== -1) {
-    //         browser.tabs.create({"url": text});
-    //     } else {
-    //     }
-    // } else {
-    //     var urlToOpen = urlData['url'];
-    //     if (urlToOpen !== undefined) {
-    //         var urlWithQuery = urlToOpen.replace("{QUERY}", queryCmd);
-    //         urlWithQuery = urlWithQuery.replace("%7BQUERY%7D", queryCmd);
-    //         browser.tabs.create({"url": urlWithQuery});
-    //     }
-    //     var funcToExec = urlData['func'];
-    //     if (funcToExec) {
-    //         funcToExec();
-    //     }
-    // }
+    commandName = commandName.trim();
+    queryCmd = queryCmd.trim();
+    if (commandName === "f" || commandName === "from")
+    {
+        console.log("command FROM: " + queryCmd);
+        browser.tabs.query({mailTab: true}).then(tabs => {
+            browser.mailTabs.setQuickFilter(tabs[0].id, {text: {text: queryCmd, author: true}});
+        });
+        return;
+    }
+    if (commandName === "t" ||
+        commandName === "to" ||
+        commandName === "toorcc")
+    {
+        console.log("command TO: " + queryCmd);
+        browser.tabs.query({mailTab: true}).then(tabs => {
+            browser.mailTabs.setQuickFilter(tabs[0].id, {text: {text: queryCmd, recipients: true}});
+        });
+        return;
+    }
+    if (commandName === "b" ||
+        commandName === "body")
+    {
+        console.log("command BODY: " + queryCmd);
+        browser.tabs.query({mailTab: true}).then(tabs => {
+            browser.mailTabs.setQuickFilter(tabs[0].id, {text: {text: queryCmd, body: true}});
+        });
+        return;
+    }
+    if (commandName === "s" ||
+        commandName === "subject")
+    {
+        console.log("command SUBJECT: " + queryCmd);
+        browser.tabs.query({mailTab: true}).then(tabs => {
+            browser.mailTabs.setQuickFilter(tabs[0].id, {text: {text: queryCmd, subject: true}});
+        });
+        return;
+    }
+    if (commandName === "t" ||
+        commandName === "tag")
+    {
+        console.log("command TAG: " + queryCmd);
+        browser.tabs.query({mailTab: true}).then(tabs => {
+            var tagFilter = {}
+            var tagarray = queryCmd.split(" ");
+            for (idx in tagarray) {
+                console.log("Processing tag: " + tagarray[idx]);
+                tagFilter[tagarray[idx]] = true;
+            }
+            var tagStr = JSON.stringify(tagFilter);
+            console.log("Tag Filter: " + tagStr);
+            browser.mailTabs.setQuickFilter(tabs[0].id, {tags: {tags: tagFilter, mode: "any"}});
+        });
+        return;
+    }
+
 }
 
 var portFromCS;
@@ -57,9 +83,48 @@ function connected(p) {
     });
 }
 
+function filterBySubject() {
+    console.log("Filtering by subject on the main window");
+    browser.tabs.query({mailTab: true}).then(tabs => {
+        browser.mailTabs.getSelectedMessages(tabs[0].id).then(messages => {
+            currMessage = messages.messages[0];
+            browser.mailTabs.setQuickFilter(tabs[0].id, {text: {text: currMessage.subject, subject: true}});
+        });
+    });
+}
+
+function filterByAuthor() {
+    console.log("Filtering by author on the main window");
+    browser.tabs.query({mailTab: true}).then(tabs => {
+        browser.mailTabs.getSelectedMessages(tabs[0].id).then(messages => {
+            currMessage = messages.messages[0];
+            browser.mailTabs.setQuickFilter(tabs[0].id, {text: {text: currMessage.author, author: true}});
+        });
+    });
+}
+
+function openSearchDialog() {
+    console.log("Open the search dialog");
+    browser.windows.create({
+        url: "tbsearchui.html",
+        type: "popup",
+        allowScriptsToClose: true
+    });
+}
+
 browser.runtime.onConnect.addListener(connected);
 browser.commands.onCommand.addListener(function (command) {
-    if (command === "searchOnField") {
-        console.log("searchOnField command received");
+    if (command === "filterBySubject") {
+        filterBySubject();
+        return;
     }
+    if (command === "filterByAuthor") {
+        filterByAuthor();
+        return;
+    }
+    if (command === "openSearchDialog") {
+        openSearchDialog();
+        return;
+    }
+    console.log("Unknown Command: " + command);
 });

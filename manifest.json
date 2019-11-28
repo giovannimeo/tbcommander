@@ -2,11 +2,12 @@
     "name": "tbsearchui",
     "description": "Addon that gives a command line to thunderbird to perform search (WebExtension)",
     "manifest_version": 2,
-    "version": "0.0.1",
+    "version": "1.0.0",
     "homepage_url": "https://github.com/giovannimeo/tbsearchui",
     "permissions": [
         "menus",
-        "messagesRead"
+        "messagesRead",
+        "tabs"
     ],
     "icons": {
         "128": "icons/tbsearchui128.png"
@@ -25,13 +26,16 @@
     "commands": {
         "_execute_browser_action": {
             "suggested_key": { "default": "Ctrl+Space" },
-            "description": "Do the search"
+            "description": "Open the search dialog"
         },
-        "searchOnField": {
-            "suggested_key": { "default": "Ctrl+Shift+Space" },
-            "description": "Do the search On Field"
+        "filterBySubject": {
+            "suggested_key": { "default": "Ctrl+Shift+9" },
+            "description": "Do the search On Subject"
+        },
+        "filterByAuthor": {
+            "suggested_key": { "default": "Ctrl+Shift+0" },
+            "description": "Do the search On Author"
         }
-
     },
     "applications": {
         "gecko": {
