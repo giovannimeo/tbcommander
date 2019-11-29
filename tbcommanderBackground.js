@@ -105,11 +105,10 @@ function filterByAuthor() {
 
 function openSearchDialog() {
     console.log("Open the search dialog");
-    browser.windows.create({
-        url: "tbsearchui.html",
-        type: "popup",
-        allowScriptsToClose: true
+    browser.tabs.query({mailTab: true}).then(tabs => {
+        browser.browserAction.enable(tabs[0].id);
     });
+    browser.browserAction.openPopup();
 }
 
 browser.runtime.onConnect.addListener(connected);

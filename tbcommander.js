@@ -2,7 +2,7 @@
 // Script invoked in the popup page, it listen to the user input in the //
 // textarea 'edit-box' and send to the background script for processing //
 //////////////////////////////////////////////////////////////////////////
-console.log("Launching tbsearchui.js");
+console.log("Launching tbcommander.js");
 
 var inputArea = document.getElementById("edit-box");
 inputArea.addEventListener('keyup', function onkeyup(event) {
@@ -11,7 +11,7 @@ inputArea.addEventListener('keyup', function onkeyup(event) {
         var text = inputArea.value.replace(/(\r\n|\n|\r)/gm,"");
         text = text.trim();
         console.log(`Send message to background script: ${text}`);
-        var toBackgroundScript = browser.runtime.connect({name: "tbsearchuiSendEditBox"});
+        var toBackgroundScript = browser.runtime.connect({name: "tbcommanderSendEditBox"});
         toBackgroundScript.postMessage({command: text});
         toBackgroundScript.onMessage.addListener(function(m) {
             console.log("Text Box processed by background script");
